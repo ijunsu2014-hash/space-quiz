@@ -121,9 +121,12 @@ const D=[
 ["🏠 살류트 1호","1971년 4월 소련이 발사한 세계 최초의 우주정거장입니다. 첫 승무원은 도킹에는 성공했지만 내부로 들어가지 못했고, 이후 소유즈 11호 승무원이 23일간 머물렀으나 귀환 중 감압 사고로 불행히 숨졌어요. 미국은 1973년 스카이랩, 소련은 1986년 미르를 발사했고, 현재는 국제우주정거장(ISS)이 2000년부터 상주 운영 중입니다."]
 ];
 const $=id=>document.getElementById(id);
-let i=0,score=0,locked=false;
+let i=0,score=0,locked=false,order=[],cur=0,opts=[];
+const shuffle=n=>{const a=[...Array(n).keys()];for(let j=n-1;j>0;j--){const r=Math.floor(Math.random()*(j+1));[a[j],a[r]]=[a[r],a[j]]}return a};
+function newRound(){order=shuffle(Q.length);i=0;score=0}
 function show(){
-  const [q,o,,]=Q[i];locked=false;
+  cur=order[i];const [q,o,a]=Q[cur];locked=false;
+  opts=shuffle(o.length).map(j=>({t:o[j],ok:j===a}));
   $("count").textContent=`문제 ${i+1} / ${Q.length}`;
   $("score").textContent=score;
   $("bar").style.width=(i/Q.length*100)+"%";
@@ -131,12 +134,12 @@ function show(){
   $("q").textContent=q;
   $("fb").className="fb";$("fb").textContent="";
   const box=$("opts");box.innerHTML="";
-  o.forEach((t,k)=>{const b=document.createElement("button");b.className="opt";b.textContent=t;b.onclick=()=>pick(k);box.appendChild(b)});
+  opts.forEach(({t},k)=>{const b=document.createElement("button");b.className="opt";b.textContent=t;b.onclick=()=>pick(k);box.appendChild(b)});
 }
 function flash(c){const card=$("card");card.classList.remove("flashgood","flashbad");void card.offsetWidth;card.classList.add(c)}
 function pick(k){
   if(locked)return;locked=true;
-  const [, ,a,fact]=Q[i];const btns=[...document.querySelectorAll(".opt")];
+  const a=opts.findIndex(x=>x.ok),fact=Q[cur][3];const btns=[...document.querySelectorAll(".opt")];
   btns.forEach((b,n)=>{b.disabled=true;if(n===a)b.classList.add("correct");else if(n===k)b.classList.add("wrong");else b.classList.add("dim")});
   const ok=k===a;
   if(ok){score++;$("score").textContent=score;flash("flashgood")}else flash("flashbad");
@@ -146,9 +149,9 @@ function pick(k){
   setTimeout(()=>openModal(ok),700);
 }
 function openModal(ok){
-  const [t,b]=D[i];
+  const [t,b]=D[cur];
   $("mtag").textContent=ok?"✅ 정답":"❌ 오답";$("mtag").className="tag "+(ok?"g":"b");
-  $("mt").textContent=t;$("mq").textContent="Q. "+Q[i][0];$("mb").textContent=b;
+  $("mt").textContent=t;$("mq").textContent="Q. "+Q[cur][0];$("mb").textContent=b;
   $("mnext").textContent=i===Q.length-1?"결과 보기 →":"다음 문제 →";
   $("ov").classList.add("open");$("ov").setAttribute("aria-hidden","false");$("mnext").focus();
 }
@@ -161,8 +164,8 @@ function finish(){
   const [e,m]=p===1?["🏆","완벽해요! 우주 사령관감이에요."]:p>=.8?["🚀","훌륭해요 — 발사 준비 완료!"]:p>=.6?["🌟","안정적인 궤도예요! 조금만 더 훈련하면 완벽해요."]:p>=.4?["🛰️","이륙 중이에요. 계속 탐험해 보세요!"]:["🌑","휴스턴, 문제가 생겼어요 — 다시 도전!"];
   $("emoji").textContent=e;$("final").textContent=`${score} / ${Q.length}`;$("msg").textContent=m;
 }
-$("again").onclick=()=>{i=0;score=0;$("result").classList.add("hidden");$("quiz").classList.remove("hidden");show()};
-show();
+$("again").onclick=()=>{newRound();$("result").classList.add("hidden");$("quiz").classList.remove("hidden");show()};
+newRound();show();
 </script>
 </body>
 </html>
