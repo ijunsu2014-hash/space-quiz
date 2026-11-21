@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우주 탐험 퀴즈</title>
+<style>
+:root{
+  --bg:#f4f5fb;--card:#fff;--text:#1d2033;--muted:#6b7089;--border:#dfe2ef;
+  --accent:#5b5bf0;--accent2:#9b5cf6;--good:#22c55e;--goodbg:#dcfce7;--bad:#ef4444;--badbg:#fee2e2;
+  --shadow:0 10px 30px rgba(40,40,100,.12);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b0d1a;--card:#151830;--text:#e8eaf6;--muted:#9a9fc0;--border:#2a2e52;
+    --goodbg:#0f3a22;--badbg:#44181c;--shadow:0 10px 30px rgba(0,0,0,.5)}
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:32px 16px;
+  font:15px/1.5 system-ui,"Malgun Gothic","Apple SD Gothic Neo",-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--text);
+  background:radial-gradient(circle at 20% 0%,rgba(155,92,246,.18),transparent 40%),var(--bg)}
+main{width:100%;max-width:440px}
+h1{font-size:20px;margin:0 0 16px;text-align:center}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.top{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:8px}
+.score b{color:var(--accent)}
+.bar{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:20px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .4s ease}
+.q{font-size:16px;font-weight:600;margin:0 0 16px}
+.opts{display:grid;gap:10px}
+button.opt{font:inherit;text-align:left;color:var(--text);background:transparent;border:2px solid var(--border);
+  border-radius:12px;padding:11px 14px;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+button.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+button.opt:focus-visible,button.next:focus-visible{outline:3px solid var(--accent2);outline-offset:2px}
+button.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--good);background:var(--goodbg);animation:pop .5s}
+.opt.wrong{border-color:var(--bad);background:var(--badbg);animation:shake .45s}
+.opt.dim{opacity:.55}
+.card.flashgood{animation:glowg .6s}
+.card.flashbad{animation:glowr .6s}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+@keyframes glowg{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}100%{box-shadow:0 0 0 18px rgba(34,197,94,0)}}
+@keyframes glowr{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}100%{box-shadow:0 0 0 18px rgba(239,68,68,0)}}
+.fb{min-height:44px;margin-top:14px;font-size:14px;opacity:0;transition:opacity .25s}
+.fb.show{opacity:1}
+.fb.g{color:var(--good)}.fb.b{color:var(--bad)}
+button.next{font:inherit;font-weight:600;width:100%;margin-top:6px;padding:12px;border:0;border-radius:12px;color:#fff;cursor:pointer;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));visibility:hidden}
+button.next.show{visibility:visible;animation:pop .4s}
+.result{text-align:center}
+.emoji{font-size:72px;line-height:1.1;animation:bounce 1s ease infinite}
+@keyframes bounce{50%{transform:translateY(-10px) rotate(-4deg)}}
+.big{font-size:34px;font-weight:700;margin:8px 0 4px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result p{color:var(--muted);margin:4px 0 20px}
+.hidden{display:none}
+.overlay{position:fixed;inset:0;background:rgba(5,6,20,.6);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
+.overlay.open{opacity:1;pointer-events:auto}
+.modal{width:100%;max-width:420px;max-height:85vh;overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:var(--shadow);transform:translateY(20px) scale(.96);transition:transform .3s cubic-bezier(.2,1.3,.4,1)}
+.overlay.open .modal{transform:none}
+.modal .tag{display:inline-block;font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;margin-bottom:10px}
+.modal .tag.g{background:var(--goodbg);color:var(--good)}
+.modal .tag.b{background:var(--badbg);color:var(--bad)}
+.modal h3{margin:0 0 4px;font-size:18px}
+.modal .ans{color:var(--muted);font-size:13px;margin:0 0 12px}
+.modal p.body{margin:0 0 18px;line-height:1.7}
+.modal button.next{visibility:visible;margin:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>🚀 우주 탐험 퀴즈</h1>
+  <div class="card" id="card">
+    <div id="quiz">
+      <div class="top"><span id="count">문제 1 / 10</span><span class="score">점수: <b id="score">0</b></span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" id="barwrap"><i id="bar"></i></div>
+      <h2 class="q" id="q"></h2>
+      <div class="opts" id="opts"></div>
+      <div class="fb" id="fb" aria-live="polite"></div>
+    </div>
+    <div class="result hidden" id="result">
+      <div class="emoji" id="emoji"></div>
+      <div class="big" id="final"></div>
+      <p id="msg"></p>
+      <button class="next show" id="again">다시 하기</button>
+    </div>
+  </div>
+</main>
+<div class="overlay" id="ov" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+    <span class="tag" id="mtag"></span>
+    <h3 id="mt"></h3>
+    <p class="ans" id="mq"></p>
+    <p class="body" id="mb"></p>
+    <button class="next" id="mnext">다음 →</button>
+  </div>
+</div>
+<script>
+const Q=[
+["붉은 행성이라고 불리는 행성은 무엇일까요?",["금성","화성","목성","수성"],1,"산화철 먼지 때문에 화성이 붉게 보여요."],
+["최초로 우주에 간 인간은 누구일까요?",["닐 암스트롱","버즈 올드린","유리 가가린","앨런 셰퍼드"],2,"유리 가가린은 1961년 지구 궤도를 비행했어요."],
+["인류가 처음 달에 착륙한 해는 언제일까요?",["1965년","1969년","1972년","1975년"],1,"아폴로 11호가 1969년 7월 20일 착륙했어요."],
+["태양계에서 가장 큰 행성은 무엇일까요?",["토성","해왕성","지구","목성"],3,"목성에는 지구가 1,300개 넘게 들어갈 수 있어요."],
+["최초의 인공위성 이름은 무엇일까요?",["스푸트니크 1호","익스플로러 1호","보스토크 1호","텔스타"],0,"스푸트니크 1호는 1957년에 발사됐어요."],
+["2021년에 발사된 적외선 우주 망원경은 무엇일까요?",["허블","케플러","제임스 웹","스피처"],2,"제임스 웹은 2021년 크리스마스에 발사됐어요."],
+["가장 먼저 성간 우주에 진입한 탐사선은 무엇일까요?",["보이저 1호","파이어니어 10호","카시니","뉴 허라이즌스"],0,"보이저 1호는 2012년 태양권 계면을 넘었어요."],
+["태양빛이 지구에 도달하는 데 걸리는 시간은?",["약 8초","약 8분","약 8시간","약 8일"],1,"정확히는 약 8분 20초예요."],
+["가장 뚜렷한 고리를 가진 행성은 무엇일까요?",["천왕성","목성","토성","화성"],2,"토성의 고리는 대부분 얼음으로 이루어져 있어요."],
+["1971년 소련이 발사한 최초의 우주정거장은?",["미르","살류트 1호","스카이랩","톈궁"],1,"살류트 1호가 세계 최초의 우주정거장이에요."]
+];
+const D=[
+["🔴 화성","화성 표면은 산화철(녹)이 풍부한 먼지로 덮여 있어 붉게 보입니다. 지름은 지구의 절반 정도이고, 하루는 약 24시간 37분으로 지구와 비슷해요. 태양계에서 가장 높은 화산인 올림푸스 산(높이 약 22km)이 있고, 포보스와 데이모스라는 작은 위성 두 개를 거느리고 있습니다. 현재 NASA의 퍼서비어런스 같은 탐사 로버가 과거 생명체의 흔적을 찾고 있어요."],
+["👨‍🚀 유리 가가린","1961년 4월 12일 소련의 보스토크 1호를 타고 지구를 한 바퀴(약 108분) 돈 최초의 우주인입니다. 최초의 여성 우주인은 1963년의 발렌티나 테레시코바, 달 위를 처음 걸은 사람은 1969년의 닐 암스트롱이에요. 앨런 셰퍼드는 1961년 5월 미국인 최초로 우주에 갔지만 지구 궤도를 돌지는 않은 짧은 비행이었습니다."],
+["🌕 1969년","아폴로 11호는 1969년 7월 16일 발사되어 7월 20일 '고요의 바다'에 착륙했습니다. 암스트롱과 올드린은 약 2시간 30분 동안 달 표면에서 활동했고, 콜린스는 사령선에 남아 달 궤도를 돌았어요. 1972년 아폴로 17호가 마지막 유인 달 착륙이었고, 이후 인류는 50년 넘게 달에 가지 못했습니다. 현재는 아르테미스 계획으로 다시 달에 가려 하고 있어요."],
+["🪐 목성","목성은 질량이 다른 모든 행성을 합친 것의 약 2.5배에 달하는 가스 거인입니다. 지구보다 큰 '대적점'은 수백 년 이상 이어진 거대한 폭풍이에요. 확인된 위성이 90개가 넘고, 그중 유로파는 얼음 아래에 바다가 있어 생명체 후보지로 주목받습니다. 하루는 약 10시간으로 태양계에서 가장 빨리 자전해요."],
+["🛰️ 스푸트니크 1호","1957년 10월 4일 소련이 발사한 지름 58cm, 무게 약 84kg의 금속 공입니다. 약 3주간 '삐삐' 신호를 보냈고 약 3개월 뒤 대기권에서 불타 사라졌어요. 이 사건은 미국에 큰 충격을 주어 '스푸트니크 쇼크'라 불리며, 우주 경쟁과 NASA 설립(1958년)의 계기가 되었습니다."],
+["🔭 제임스 웹 우주망원경","2021년 12월 25일 발사되어 지구에서 약 150만km 떨어진 L2 지점에서 관측합니다. 지름 6.5m의 금빛 거울 18장으로 적외선을 관측해 먼지 속의 별 탄생과 135억 년 전 초기 은하를 볼 수 있어요. 허블은 주로 가시광선을 관측하며 지구 저궤도에 있고, 케플러는 외계 행성을 찾는 데 큰 역할을 했습니다."],
+["🚀 보이저 1호","1977년 발사된 보이저 1호는 2012년 태양풍의 영향권(태양권)을 벗어나 성간 우주에 진입했습니다. 지금도 지구에서 약 240억km 넘게 떨어진 곳에서 신호를 보내고 있어요. 지구의 소리와 인사말을 담은 '골든 레코드'를 싣고 있고, 신호가 지구에 닿는 데 하루 가까이 걸립니다."],
+["☀️ 약 8분","태양까지 거리는 약 1억 5천만km(1AU)이고 빛은 초속 약 30만km로 달려 약 8분 20초가 걸립니다. 지금 보는 태양은 8분 전의 모습이에요. 달빛은 약 1.3초, 가장 가까운 별 프록시마 센타우리의 빛은 약 4.2년 걸립니다."],
+["💍 토성","토성의 고리는 얼음 조각과 암석 알갱이로 이루어져 있으며, 폭은 수십만 km에 달하지만 두께는 보통 10m 안팎으로 매우 얇습니다. 목성, 천왕성, 해왕성에도 희미한 고리가 있어요. 토성은 밀도가 물보다 낮아서 아주 큰 욕조가 있다면 둥둥 뜰 정도입니다."],
+["🏠 살류트 1호","1971년 4월 소련이 발사한 세계 최초의 우주정거장입니다. 첫 승무원은 도킹에는 성공했지만 내부로 들어가지 못했고, 이후 소유즈 11호 승무원이 23일간 머물렀으나 귀환 중 감압 사고로 불행히 숨졌어요. 미국은 1973년 스카이랩, 소련은 1986년 미르를 발사했고, 현재는 국제우주정거장(ISS)이 2000년부터 상주 운영 중입니다."]
+];
+const $=id=>document.getElementById(id);
+let i=0,score=0,locked=false;
+function show(){
+  const [q,o,,]=Q[i];locked=false;
+  $("count").textContent=`문제 ${i+1} / ${Q.length}`;
+  $("score").textContent=score;
+  $("bar").style.width=(i/Q.length*100)+"%";
+  $("barwrap").setAttribute("aria-valuenow",i);
+  $("q").textContent=q;
+  $("fb").className="fb";$("fb").textContent="";
+  const box=$("opts");box.innerHTML="";
+  o.forEach((t,k)=>{const b=document.createElement("button");b.className="opt";b.textContent=t;b.onclick=()=>pick(k);box.appendChild(b)});
+}
+function flash(c){const card=$("card");card.classList.remove("flashgood","flashbad");void card.offsetWidth;card.classList.add(c)}
+function pick(k){
+  if(locked)return;locked=true;
+  const [, ,a,fact]=Q[i];const btns=[...document.querySelectorAll(".opt")];
+  btns.forEach((b,n)=>{b.disabled=true;if(n===a)b.classList.add("correct");else if(n===k)b.classList.add("wrong");else b.classList.add("dim")});
+  const ok=k===a;
+  if(ok){score++;$("score").textContent=score;flash("flashgood")}else flash("flashbad");
+  $("fb").textContent=(ok?"✅ 정답! ":"❌ 아쉬워요. ")+fact;
+  $("fb").className="fb show "+(ok?"g":"b");
+  $("bar").style.width=((i+1)/Q.length*100)+"%";
+  setTimeout(()=>openModal(ok),700);
+}
+function openModal(ok){
+  const [t,b]=D[i];
+  $("mtag").textContent=ok?"✅ 정답":"❌ 오답";$("mtag").className="tag "+(ok?"g":"b");
+  $("mt").textContent=t;$("mq").textContent="Q. "+Q[i][0];$("mb").textContent=b;
+  $("mnext").textContent=i===Q.length-1?"결과 보기 →":"다음 문제 →";
+  $("ov").classList.add("open");$("ov").setAttribute("aria-hidden","false");$("mnext").focus();
+}
+function closeModal(){$("ov").classList.remove("open");$("ov").setAttribute("aria-hidden","true")}
+function advance(){if(!$("ov").classList.contains("open"))return;closeModal();if(++i<Q.length)show();else finish()}
+$("mnext").onclick=advance;
+function finish(){
+  $("quiz").classList.add("hidden");$("result").classList.remove("hidden");
+  const p=score/Q.length;
+  const [e,m]=p===1?["🏆","완벽해요! 우주 사령관감이에요."]:p>=.8?["🚀","훌륭해요 — 발사 준비 완료!"]:p>=.6?["🌟","안정적인 궤도예요! 조금만 더 훈련하면 완벽해요."]:p>=.4?["🛰️","이륙 중이에요. 계속 탐험해 보세요!"]:["🌑","휴스턴, 문제가 생겼어요 — 다시 도전!"];
+  $("emoji").textContent=e;$("final").textContent=`${score} / ${Q.length}`;$("msg").textContent=m;
+}
+$("again").onclick=()=>{i=0;score=0;$("result").classList.add("hidden");$("quiz").classList.remove("hidden");show()};
+show();
+</script>
+</body>
+</html>
